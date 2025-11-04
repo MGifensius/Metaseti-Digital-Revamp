@@ -56,7 +56,7 @@ const About = () => {
     }
   ], [])
 
-  // 3D Digital DNA Matrix Illustration - ENHANCED FOR REALISM
+  // 3D Digital DNA Matrix Illustration - WITHOUT PARTICLES
   useEffect(() => {
     if (!illustrationCanvasRef.current) {
       console.log('Canvas ref not available')
@@ -72,7 +72,7 @@ const About = () => {
 
     const camera = new THREE.PerspectiveCamera(
       50,
-      600 / 700, // Aspect ratio for canvas dimensions
+      1, // Will be updated based on actual canvas size
       0.1,
       1000
     )
@@ -86,8 +86,8 @@ const About = () => {
       antialias: true
     })
     
-    const canvasWidth = Math.max(illustrationCanvasRef.current.clientWidth, 400)
-    const canvasHeight = Math.max(illustrationCanvasRef.current.clientHeight, 500)
+    const canvasWidth = Math.max(illustrationCanvasRef.current.clientWidth, 300)
+    const canvasHeight = Math.max(illustrationCanvasRef.current.clientHeight, 400)
     console.log('Canvas size:', canvasWidth, 'x', canvasHeight)
     renderer.setSize(canvasWidth, canvasHeight)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
@@ -95,6 +95,10 @@ const About = () => {
     renderer.shadowMap.enabled = true
     renderer.shadowMap.type = THREE.PCFSoftShadowMap
     illustrationRendererRef.current = renderer
+
+    // Update camera aspect ratio
+    camera.aspect = canvasWidth / canvasHeight
+    camera.updateProjectionMatrix()
 
     // Enhanced Lighting for realism
     const ambientLight = new THREE.AmbientLight(0x2a4858, 0.4)
@@ -243,46 +247,6 @@ const About = () => {
     mainGroup.add(strand1Mesh)
     mainGroup.add(strand2Mesh)
 
-    // Create floating data particles with more variety - LARGER
-    const particles = []
-    const particleTypes = [
-      { size: 0.10, color: 0x00ffff, emissive: 0.8 },
-      { size: 0.08, color: 0xff00ff, emissive: 0.7 },
-      { size: 0.07, color: 0xffffff, emissive: 0.6 },
-      { size: 0.12, color: 0x00ff88, emissive: 0.9 }
-    ]
-
-    for (let i = 0; i < 50; i++) {
-      const type = particleTypes[Math.floor(Math.random() * particleTypes.length)]
-      
-      const particleGeometry = new THREE.SphereGeometry(type.size, 8, 8)
-      const particleMaterial = new THREE.MeshBasicMaterial({
-        color: type.color,
-        transparent: true,
-        opacity: 0.7 + Math.random() * 0.3
-      })
-      
-      const particle = new THREE.Mesh(particleGeometry, particleMaterial)
-      
-      const radius = 4.5 + Math.random() * 2.5
-      const angle = Math.random() * Math.PI * 2
-      const height = (Math.random() - 0.5) * helixHeight * 1.2
-      
-      particle.position.x = Math.cos(angle) * radius
-      particle.position.y = height
-      particle.position.z = Math.sin(angle) * radius
-      
-      particle.userData.orbitSpeed = 0.0008 + Math.random() * 0.0015
-      particle.userData.angle = angle
-      particle.userData.radius = radius
-      particle.userData.verticalSpeed = (Math.random() - 0.5) * 0.008
-      particle.userData.pulseSpeed = 0.5 + Math.random() * 1
-      particle.userData.pulseOffset = Math.random() * Math.PI * 2
-      
-      particles.push(particle)
-      mainGroup.add(particle)
-    }
-
     // Create outer rings for matrix effect with depth - sized to fit
     const rings = []
     for (let i = 0; i < 3; i++) {
@@ -322,8 +286,8 @@ const About = () => {
 
     const handleIllustrationResize = () => {
       if (!illustrationCanvasRef.current || !illustrationCameraRef.current || !illustrationRendererRef.current) return
-      const canvasWidth = Math.max(illustrationCanvasRef.current.clientWidth, 400)
-      const canvasHeight = Math.max(illustrationCanvasRef.current.clientHeight, 500)
+      const canvasWidth = Math.max(illustrationCanvasRef.current.clientWidth, 300)
+      const canvasHeight = Math.max(illustrationCanvasRef.current.clientHeight, 400)
       illustrationCameraRef.current.aspect = canvasWidth / canvasHeight
       illustrationCameraRef.current.updateProjectionMatrix()
       illustrationRendererRef.current.setSize(canvasWidth, canvasHeight)
@@ -343,23 +307,6 @@ const About = () => {
         const scale = 1 + Math.sin(time * 2 + index * 0.2) * 0.15
         pair.base1.scale.set(scale, scale, scale)
         pair.base2.scale.set(scale, scale, scale)
-      })
-
-      // Animate particles with complex motion
-      particles.forEach(particle => {
-        particle.userData.angle += particle.userData.orbitSpeed
-        particle.position.x = Math.cos(particle.userData.angle) * particle.userData.radius
-        particle.position.z = Math.sin(particle.userData.angle) * particle.userData.radius
-        
-        // Vertical movement with sine wave
-        particle.position.y += particle.userData.verticalSpeed
-        if (Math.abs(particle.position.y) > helixHeight / 2 + 1) {
-          particle.userData.verticalSpeed *= -1
-        }
-        
-        // Pulse particle opacity
-        const pulseOpacity = 0.5 + Math.sin(time * particle.userData.pulseSpeed + particle.userData.pulseOffset) * 0.4
-        particle.material.opacity = pulseOpacity
       })
 
       // Rotate rings with variation
@@ -399,12 +346,12 @@ const About = () => {
     <section id="about" className="w-full relative bg-black overflow-hidden">
       
       {/* Header */}
-      <div className="relative container mx-auto px-6 py-24 text-center">
+      <div className="relative container mx-auto px-4 sm:px-6 py-16 sm:py-20 md:py-24 text-center">
         <div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 text-white tracking-tight">
             Who We Are
           </h2>
-          <p className="text-gray-400 text-xl md:text-2xl max-w-4xl mx-auto leading-relaxed">
+          <p className="text-gray-400 text-base sm:text-lg md:text-xl lg:text-2xl max-w-4xl mx-auto leading-relaxed px-2">
             Metaseti Digital Indonesia is at the forefront of digital innovation, 
             transforming businesses through cutting-edge technology solutions and 
             strategic digital engineering.
@@ -412,42 +359,45 @@ const About = () => {
         </div>
       </div>
 
-      {/* Vision & Mission - New Layout with Center Illustration */}
-      <div className="relative container mx-auto px-6 py-20">
+      {/* Vision & Mission - Responsive Layout with Center Illustration */}
+      <div className="relative container mx-auto px-4 sm:px-6 py-12 sm:py-16 md:py-20">
         <div className="max-w-7xl mx-auto">
           
-          {/* Grid Layout: Vision Left (Row 1), Illustration Center (Rows 1-2), Mission Right (Row 2) */}
-          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
+          {/* Responsive Grid Layout - DNA hidden on mobile */}
+          <div className="flex flex-col lg:grid lg:grid-cols-12 gap-8 lg:gap-6 items-center lg:items-start">
             
-            {/* Vision Card - Left Side, First Row */}
-            <div className="lg:col-span-4 lg:col-start-1 lg:row-start-1 relative z-10">
+            {/* Vision Card - Stacks first on mobile, left on desktop */}
+            <div className="w-full lg:col-span-4 lg:col-start-1 lg:row-start-1 relative z-10">
               <div className="relative">
                 {/* Gradient border effect */}
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-white/40 to-white/20 rounded-2xl opacity-75 blur-sm"></div>
                 
-                <div className="relative bg-black/90 backdrop-blur-md rounded-2xl p-4 md:p-5 border border-white/20">
+                <div className="relative bg-black/90 backdrop-blur-md rounded-2xl p-5 sm:p-6 md:p-7 lg:p-5 border border-white/20">
                   {/* Small tag */}
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/30 mb-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/30 mb-3">
                     <div className="w-2 h-2 rounded-full bg-white shadow-lg shadow-white/50"></div>
                     <span className="text-xs font-medium text-white uppercase tracking-wider">Vision</span>
                   </div>
                   
-                  <h3 className="text-lg md:text-xl font-bold text-white mb-2">
+                  <h3 className="text-xl sm:text-2xl md:text-2xl lg:text-xl font-bold text-white mb-3">
                     {visionContent.title}
                   </h3>
                   
-                  <p className="text-gray-400 leading-relaxed text-xs md:text-sm">
+                  <p className="text-gray-400 leading-relaxed text-sm sm:text-base md:text-base lg:text-sm">
                     {visionContent.description}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* 3D DNA Illustration - Center, Spanning 2 Rows, WIDER */}
-            <div className="lg:col-span-4 lg:col-start-5 lg:row-span-2 lg:row-start-1 order-first lg:order-none flex items-center justify-center">
-              <div className="relative w-full">
-                {/* Canvas container - Centered and sized appropriately */}
-                <div className="relative w-full max-w-[600px] mx-auto" style={{ height: '700px' }}>
+            {/* 3D DNA Illustration - Center, Hidden on Mobile */}
+            <div className="hidden lg:flex w-full lg:col-span-4 lg:col-start-5 lg:row-span-2 lg:row-start-1 items-center justify-center">
+              <div className="relative w-full max-w-[500px] lg:max-w-[600px]">
+                {/* Responsive canvas container */}
+                <div className="relative w-full mx-auto" style={{ 
+                  height: 'clamp(400px, 60vw, 700px)',
+                  maxHeight: '700px'
+                }}>
                   <canvas
                     ref={illustrationCanvasRef}
                     className="w-full h-full"
@@ -457,24 +407,24 @@ const About = () => {
               </div>
             </div>
 
-            {/* Mission Card - Right Side, Second Row */}
-            <div className="lg:col-span-4 lg:col-start-9 lg:row-start-2 relative z-10">
+            {/* Mission Card - Stacks second on mobile, right on desktop */}
+            <div className="w-full lg:col-span-4 lg:col-start-9 lg:row-start-2 relative z-10">
               <div className="relative">
                 {/* Gradient border effect */}
                 <div className="absolute -inset-0.5 bg-gradient-to-r from-white/40 to-white/20 rounded-2xl opacity-75 blur-sm"></div>
                 
-                <div className="relative bg-black/90 backdrop-blur-md rounded-2xl p-4 md:p-5 border border-white/20">
+                <div className="relative bg-black/90 backdrop-blur-md rounded-2xl p-5 sm:p-6 md:p-7 lg:p-5 border border-white/20">
                   {/* Small tag */}
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/30 mb-2">
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/30 mb-3">
                     <div className="w-2 h-2 rounded-full bg-white shadow-lg shadow-white/50"></div>
                     <span className="text-xs font-medium text-white uppercase tracking-wider">Mission</span>
                   </div>
                   
-                  <h3 className="text-lg md:text-xl font-bold text-white mb-2">
+                  <h3 className="text-xl sm:text-2xl md:text-2xl lg:text-xl font-bold text-white mb-3">
                     {missionContent.title}
                   </h3>
                   
-                  <p className="text-gray-400 leading-relaxed text-xs md:text-sm">
+                  <p className="text-gray-400 leading-relaxed text-sm sm:text-base md:text-base lg:text-sm">
                     {missionContent.description}
                   </p>
                 </div>
@@ -486,52 +436,52 @@ const About = () => {
         </div>
       </div>
 
-      {/* Roadmap Section - Redesigned for Smooth Scrolling */}
-      <div className="relative py-32">
-        <div className="container mx-auto px-6">
+      {/* Roadmap Section - Fully Responsive */}
+      <div className="relative py-16 sm:py-20 md:py-24 lg:py-32">
+        <div className="container mx-auto px-4 sm:px-6">
           <div className="max-w-7xl mx-auto">
             
             {/* Roadmap Header */}
-            <div className="text-center mb-20">
-              <h3 className="text-4xl md:text-5xl font-bold mb-4 text-white">Future Roadmap</h3>
-              <p className="text-gray-400 text-xl md:text-2xl max-w-3xl mx-auto">
+            <div className="text-center mb-12 sm:mb-16 md:mb-20">
+              <h3 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-3 sm:mb-4 text-white">Future Roadmap</h3>
+              <p className="text-gray-400 text-base sm:text-lg md:text-xl lg:text-2xl max-w-3xl mx-auto px-2">
                 Our strategic journey towards becoming Indonesia's leading AI-based company.
               </p>
             </div>
 
-            {/* Roadmap Cards - Simple Grid Layout */}
-            <div className="grid md:grid-cols-3 gap-8 mb-20">
+            {/* Roadmap Cards - Responsive Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8 mb-12 sm:mb-16 md:mb-20">
               {roadmapPhases.map((item, index) => (
                 <div key={index} className="relative">
                   {/* Card */}
-                  <div className="h-full bg-gradient-to-br from-white/10 via-white/5 to-transparent backdrop-blur-xl border border-white/20 rounded-3xl p-8 overflow-hidden">
+                  <div className="h-full bg-gradient-to-br from-white/10 via-white/5 to-transparent backdrop-blur-xl border border-white/20 rounded-2xl sm:rounded-3xl p-6 sm:p-7 md:p-8 overflow-hidden">
                     
-                    {/* Year Badge - No Icon */}
-                    <div className="mb-6">
-                      <div className="flex items-center gap-3 mb-6">
-                        <div className="text-3xl font-bold text-white">{item.year}</div>
+                    {/* Year Badge */}
+                    <div className="mb-4 sm:mb-6">
+                      <div className="flex items-center gap-3 mb-4 sm:mb-6">
+                        <div className="text-2xl sm:text-3xl font-bold text-white">{item.year}</div>
                         <div className="text-xs text-gray-500 uppercase tracking-wider">{item.phase}</div>
                       </div>
                     </div>
 
                     {/* Title */}
-                    <h4 className="text-xl font-bold text-white mb-4">
+                    <h4 className="text-lg sm:text-xl font-bold text-white mb-3 sm:mb-4">
                       {item.title}
                     </h4>
 
                     {/* Divider */}
-                    <div className="w-full h-px bg-gradient-to-r from-white/20 via-white/10 to-transparent mb-6"></div>
+                    <div className="w-full h-px bg-gradient-to-r from-white/20 via-white/10 to-transparent mb-4 sm:mb-6"></div>
 
                     {/* Content */}
                     {index === 0 && (
-                      <div className="space-y-4">
+                      <div className="space-y-3 sm:space-y-4">
                         <p className="text-gray-400 text-sm leading-relaxed">
                           With the rising use of artificial intelligence, it's important for us to familiarize the usage of AI. We will focus on:
                         </p>
                         <div className="space-y-2">
                           {['AI Agents', 'AI Infrastructure', 'AI Consultations', 'AI Products'].map((subItem, idx) => (
                             <div key={idx} className="flex items-center text-gray-400 text-sm">
-                              <div className="w-1.5 h-1.5 rounded-full bg-white mr-3"></div>
+                              <div className="w-1.5 h-1.5 rounded-full bg-white mr-3 flex-shrink-0"></div>
                               <span>{subItem}</span>
                             </div>
                           ))}
@@ -555,7 +505,7 @@ const About = () => {
                     )}
                   </div>
 
-                  {/* Connection Line (between cards) */}
+                  {/* Connection Line (hidden on mobile/tablet, shown on desktop) */}
                   {index < roadmapPhases.length - 1 && (
                     <div className="hidden md:block absolute top-20 -right-4 w-8 h-px bg-gradient-to-r from-white/30 to-transparent"></div>
                   )}
@@ -563,24 +513,24 @@ const About = () => {
               ))}
             </div>
 
-            {/* Progress Indicator */}
-            <div className="mt-16">
-              <div className="relative bg-gradient-to-br from-white/10 via-white/5 to-transparent backdrop-blur-xl border border-white/20 rounded-3xl p-10 overflow-hidden">
+            {/* Progress Indicator - Responsive */}
+            <div className="mt-12 sm:mt-16">
+              <div className="relative bg-gradient-to-br from-white/10 via-white/5 to-transparent backdrop-blur-xl border border-white/20 rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 overflow-hidden">
                 {/* Decorative glow */}
-                <div className="absolute top-1/2 left-1/2 w-96 h-96 bg-white/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
+                <div className="absolute top-1/2 left-1/2 w-64 sm:w-80 md:w-96 h-64 sm:h-80 md:h-96 bg-white/5 rounded-full blur-3xl -translate-x-1/2 -translate-y-1/2"></div>
                 
                 <div className="relative z-10">
-                  <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-8">
-                    <div>
-                      <h4 className="text-2xl font-bold text-white mb-2">Overall Progress</h4>
-                      <p className="text-gray-500 uppercase tracking-wider text-sm">2024 • Foundation Phase</p>
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 sm:mb-8">
+                    <div className="mb-4 sm:mb-0">
+                      <h4 className="text-xl sm:text-2xl font-bold text-white mb-2">Overall Progress</h4>
+                      <p className="text-gray-500 uppercase tracking-wider text-xs sm:text-sm">2024 • Foundation Phase</p>
                     </div>
-                    <div className="mt-4 md:mt-0">
-                      <div className="text-3xl font-bold text-white">15%</div>
+                    <div>
+                      <div className="text-2xl sm:text-3xl font-bold text-white">15%</div>
                     </div>
                   </div>
 
-                  <div className="relative w-full h-3 bg-white/5 rounded-full overflow-hidden mb-6">
+                  <div className="relative w-full h-2 sm:h-3 bg-white/5 rounded-full overflow-hidden mb-6">
                     <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent"></div>
                     <div 
                       className="absolute top-0 left-0 h-full bg-gradient-to-r from-white via-white/90 to-white/70 rounded-full transition-all duration-1000 shadow-lg shadow-white/50"
@@ -588,7 +538,7 @@ const About = () => {
                     ></div>
                   </div>
 
-                  <div className="grid grid-cols-4 gap-4">
+                  <div className="grid grid-cols-4 gap-2 sm:gap-4">
                     {[
                       { year: '2024', active: true },
                       { year: '2026', active: false },
@@ -596,8 +546,8 @@ const About = () => {
                       { year: '2030+', active: false }
                     ].map((item, index) => (
                       <div key={index} className="text-center">
-                        <div className={`w-3 h-3 rounded-full mx-auto mb-3 transition-all duration-500 ${item.active ? 'bg-white shadow-lg shadow-white/50 scale-125' : 'bg-white/20'}`}></div>
-                        <span className={`text-sm transition-colors duration-500 ${item.active ? 'text-white font-bold' : 'text-gray-500'}`}>
+                        <div className={`w-2 h-2 sm:w-3 sm:h-3 rounded-full mx-auto mb-2 sm:mb-3 transition-all duration-500 ${item.active ? 'bg-white shadow-lg shadow-white/50 scale-125' : 'bg-white/20'}`}></div>
+                        <span className={`text-xs sm:text-sm transition-colors duration-500 ${item.active ? 'text-white font-bold' : 'text-gray-500'}`}>
                           {item.year}
                         </span>
                       </div>
