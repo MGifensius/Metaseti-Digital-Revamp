@@ -86,10 +86,13 @@ const Hero = () => {
   }
 
   return (
-    <section id="hero" className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black pt-20">
+    <section 
+      id="hero" 
+      className="min-h-screen flex items-center justify-center relative overflow-hidden bg-black pt-16 sm:pt-20 pb-8 sm:pb-12"
+    >
       
-      {/* Animated SVG Sphere Background - Responsive */}
-      <div className="absolute inset-0 flex items-center justify-center">
+      {/* Animated SVG Sphere Background - Fully Responsive */}
+      <div className="absolute inset-0 flex items-center justify-center overflow-hidden">
         <div 
           ref={sphereAnimationRef}
           className="sphere-animation"
@@ -97,14 +100,46 @@ const Hero = () => {
             position: 'absolute',
             width: '100%',
             height: '100%',
-            maxWidth: '900px',
-            maxHeight: '900px',
+            maxWidth: '350px',
+            maxHeight: '350px',
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
             padding: '1rem'
           }}
         >
+          <style>{`
+            @media (min-width: 480px) {
+              .sphere-animation {
+                max-width: 450px !important;
+                max-height: 450px !important;
+              }
+            }
+            @media (min-width: 640px) {
+              .sphere-animation {
+                max-width: 550px !important;
+                max-height: 550px !important;
+              }
+            }
+            @media (min-width: 768px) {
+              .sphere-animation {
+                max-width: 650px !important;
+                max-height: 650px !important;
+              }
+            }
+            @media (min-width: 1024px) {
+              .sphere-animation {
+                max-width: 800px !important;
+                max-height: 800px !important;
+              }
+            }
+            @media (min-width: 1280px) {
+              .sphere-animation {
+                max-width: 900px !important;
+                max-height: 900px !important;
+              }
+            }
+          `}</style>
           <svg 
             className="sphere w-full h-full" 
             viewBox="0 0 440 440" 
@@ -144,12 +179,12 @@ const Hero = () => {
       </div>
 
       {/* Content */}
-      <div className="container mx-auto px-6 text-center relative z-10">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
         <motion.h1
           initial={{ opacity: 0, y: 50 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1 }}
-          className="text-4xl md:text-6xl lg:text-7xl xl:text-8xl mb-6 text-white leading-tight font-glacial"
+          className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl 2xl:text-8xl mb-4 sm:mb-6 text-white leading-tight font-glacial px-2"
         >
           IMPACT ENGINEERED.
           <br />
@@ -160,7 +195,7 @@ const Hero = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1, delay: 0.3 }}
-          className="text-lg md:text-xl lg:text-2xl text-gray-300 mb-12 max-w-3xl mx-auto"
+          className="text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 mb-8 sm:mb-12 max-w-3xl mx-auto px-4"
         >
           We don't hope for results; we build them.
         </motion.p>
