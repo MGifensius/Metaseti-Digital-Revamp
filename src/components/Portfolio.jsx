@@ -9,6 +9,41 @@ import BrandingThumbnail from '../assets/BrandingConcept.jpg'
 import BrandingMockup from '../assets/BrandingMockup.png'
 import ERPThumbnail from '../assets/ERPConcept.jpg'
 
+// Lazy Image Component with loading states
+const LazyImage = ({ src, alt, className, placeholderClassName }) => {
+  const [isLoaded, setIsLoaded] = useState(false)
+  const [hasError, setHasError] = useState(false)
+
+  return (
+    <div className="relative w-full h-full">
+      {/* Placeholder/Skeleton while loading */}
+      {!isLoaded && !hasError && (
+        <div className={`absolute inset-0 bg-gradient-to-br from-gray-200 via-gray-300 to-gray-200 animate-pulse ${placeholderClassName}`} />
+      )}
+      
+      {/* Error fallback */}
+      {hasError && (
+        <div className="absolute inset-0 bg-gray-800 flex items-center justify-center">
+          <span className="text-gray-500 text-sm">Image unavailable</span>
+        </div>
+      )}
+      
+      {/* Actual image */}
+      <img
+        src={src}
+        alt={alt}
+        loading="lazy"
+        onLoad={() => setIsLoaded(true)}
+        onError={() => setHasError(true)}
+        className={`${className} transition-opacity duration-500 ${
+          isLoaded ? 'opacity-100' : 'opacity-0'
+        }`}
+        style={{ willChange: 'opacity' }}
+      />
+    </div>
+  )
+}
+
 // Mac Window Component - Simplified
 const MacWindow = ({ children, title = "Demo" }) => {
   return (
@@ -224,7 +259,7 @@ const Portfolio = () => {
   return (
     <section id="portfolio" className="min-h-screen py-20 bg-black relative overflow-hidden">
       <div className="container mx-auto px-4 sm:px-6">
-        {/* Header - No animations */}
+        {/* Header */}
         <div className="text-center mb-16">
           <h2 className="text-4xl md:text-5xl font-bold mb-4 text-white">Our Portfolio</h2>
           <p className="text-gray-400 text-base md:text-xl max-w-3xl mx-auto leading-relaxed px-4">
@@ -233,7 +268,7 @@ const Portfolio = () => {
           </p>
         </div>
 
-        {/* Projects Grid - Removed all Framer Motion */}
+        {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
           {projects.map((project) => (
             <div
@@ -242,14 +277,14 @@ const Portfolio = () => {
               className="group cursor-pointer"
             >
               <div className="relative overflow-hidden rounded-xl bg-gray-900 border border-gray-800 hover:border-white/30 transition-colors duration-300">
-                {/* Thumbnail */}
+                {/* Thumbnail with LazyImage */}
                 <div className="relative h-48 md:h-64 overflow-hidden">
                   <div className={`absolute inset-0 bg-gradient-to-br ${project.color}`} />
-                  <img 
-                    src={project.icon} 
+                  <LazyImage
+                    src={project.icon}
                     alt={project.title}
                     className="absolute inset-0 w-full h-full object-cover opacity-60 group-hover:opacity-80 transition-opacity duration-300"
-                    loading="lazy"
+                    placeholderClassName="rounded-t-xl"
                   />
                   {/* Hover Overlay */}
                   <div className="absolute inset-0 bg-black/80 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
@@ -283,7 +318,7 @@ const Portfolio = () => {
         </div>
       </div>
 
-      {/* Project Detail Modal - Simplified animations */}
+      {/* Project Detail Modal */}
       {selectedProject && (
         <div
           className="fixed inset-0 bg-black/95 z-50 overflow-y-auto"
@@ -431,7 +466,7 @@ const Portfolio = () => {
   )
 }
 
-// Demo Components - Removed Framer Motion
+// Demo Components
 const DemoComponent = ({ type }) => {
   switch (type) {
     case 'ecommerce':
@@ -451,7 +486,7 @@ const DemoComponent = ({ type }) => {
   }
 }
 
-// E-commerce Demo - Simplified
+// E-commerce Demo
 const EcommerceDemo = () => {
   const [selectedProduct, setSelectedProduct] = useState(null)
   const [recommendations, setRecommendations] = useState([])
@@ -487,11 +522,10 @@ const EcommerceDemo = () => {
             className="bg-white hover:bg-gray-50 rounded-lg md:rounded-xl p-2 md:p-4 transition-colors shadow-md hover:shadow-xl border-2 border-transparent hover:border-blue-400"
           >
             <div className="aspect-square mb-1 md:mb-3 rounded-lg overflow-hidden bg-gray-100">
-              <img 
-                src={product.image} 
+              <LazyImage
+                src={product.image}
                 alt={product.name}
                 className="w-full h-full object-cover"
-                loading="lazy"
               />
             </div>
             <div className="text-gray-900 text-xs md:text-sm font-semibold mb-1 line-clamp-2 text-left">{product.name}</div>
@@ -516,11 +550,10 @@ const EcommerceDemo = () => {
             {recommendations.map(rec => (
               <div key={rec.id} className="bg-gradient-to-br from-blue-50 to-purple-50 rounded-lg p-2 md:p-4 border border-blue-200">
                 <div className="aspect-square mb-1 md:mb-2 rounded overflow-hidden bg-white">
-                  <img 
-                    src={rec.image} 
+                  <LazyImage
+                    src={rec.image}
                     alt={rec.name}
                     className="w-full h-full object-cover"
-                    loading="lazy"
                   />
                 </div>
                 <div className="text-gray-900 text-xs md:text-sm font-semibold mb-1 line-clamp-2">{rec.name}</div>
@@ -548,7 +581,7 @@ const EcommerceDemo = () => {
   )
 }
 
-// Inventory Demo - Simplified (removing motion)
+// Inventory Demo
 const InventoryDemo = () => {
   const [inventory] = useState([
     { id: 1, name: "Product A", stock: 150, reorder: 50, status: "healthy", trend: "up", image: "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=200&q=80" },
@@ -614,7 +647,7 @@ const InventoryDemo = () => {
           >
             <div className="flex items-center gap-2 md:gap-4">
               <div className="w-12 h-12 md:w-16 md:h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                <img src={item.image} alt={item.name} className="w-full h-full object-cover" loading="lazy" />
+                <LazyImage src={item.image} alt={item.name} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1 md:gap-3 mb-1 md:mb-2 flex-wrap">
@@ -664,7 +697,7 @@ const InventoryDemo = () => {
   )
 }
 
-// IoT Demo - Simplified
+// IoT Demo
 const IoTDemo = () => {
   const [machines] = useState([
     { id: 1, name: "Assembly Line A", status: "operational", health: 95, temp: 72, alert: null, image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=200&q=80" },
@@ -729,7 +762,7 @@ const IoTDemo = () => {
           >
             <div className="flex items-center gap-2 md:gap-4 mb-3 md:mb-4">
               <div className="w-12 h-12 md:w-20 md:h-20 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                <img src={machine.image} alt={machine.name} className="w-full h-full object-cover" loading="lazy" />
+                <LazyImage src={machine.image} alt={machine.name} className="w-full h-full object-cover" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1 md:gap-3 mb-1 md:mb-2 flex-wrap">
@@ -800,7 +833,7 @@ const IoTDemo = () => {
   )
 }
 
-// AI Agent Demo - Simplified
+// AI Agent Demo
 const AIAgentDemo = () => {
   const [messages, setMessages] = useState([
     { id: 1, type: 'user', text: 'I need to schedule a product demo for next week', time: '2:30 PM' },
@@ -945,11 +978,10 @@ const BrandingDemo = () => {
       {/* Mockup Image Display */}
       <div className="bg-white rounded-xl md:rounded-2xl p-4 md:p-8 shadow-xl border border-gray-200">
         <div className="relative w-full bg-gray-50 rounded-lg md:rounded-xl overflow-hidden shadow-2xl">
-          <img 
-            src={BrandingMockup} 
+          <LazyImage
+            src={BrandingMockup}
             alt="Brand Identity Mockup Design"
             className="w-full h-auto object-contain"
-            loading="lazy"
           />
         </div>
 
@@ -1009,7 +1041,7 @@ const BrandingDemo = () => {
   )
 }
 
-// ERP Demo - Simplified
+// ERP Demo
 const ERPDemo = () => {
   const [activeModule, setActiveModule] = useState('dashboard')
 
