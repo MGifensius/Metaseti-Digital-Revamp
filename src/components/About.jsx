@@ -56,21 +56,27 @@ const About = () => {
     }
   ], [])
 
-  // 3D Digital DNA Matrix Illustration
+  // 3D Digital DNA Matrix Illustration - ENHANCED FOR REALISM
   useEffect(() => {
-    if (!illustrationCanvasRef.current) return
+    if (!illustrationCanvasRef.current) {
+      console.log('Canvas ref not available')
+      return
+    }
+
+    console.log('Initializing DNA illustration...')
 
     const scene = new THREE.Scene()
     scene.background = null
+    scene.fog = new THREE.Fog(0x000000, 20, 35)
     illustrationSceneRef.current = scene
 
     const camera = new THREE.PerspectiveCamera(
       50,
-      1,
+      600 / 700, // Aspect ratio for canvas dimensions
       0.1,
       1000
     )
-    camera.position.set(0, 0, 12)
+    camera.position.set(0, 0, 18)
     camera.lookAt(0, 0, 0)
     illustrationCameraRef.current = camera
 
@@ -80,36 +86,57 @@ const About = () => {
       antialias: true
     })
     
-    const size = illustrationCanvasRef.current.clientWidth
-    renderer.setSize(size, size)
+    const canvasWidth = Math.max(illustrationCanvasRef.current.clientWidth, 400)
+    const canvasHeight = Math.max(illustrationCanvasRef.current.clientHeight, 500)
+    console.log('Canvas size:', canvasWidth, 'x', canvasHeight)
+    renderer.setSize(canvasWidth, canvasHeight)
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2))
     renderer.setClearColor(0x000000, 0)
+    renderer.shadowMap.enabled = true
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap
     illustrationRendererRef.current = renderer
 
-    // Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6)
+    // Enhanced Lighting for realism
+    const ambientLight = new THREE.AmbientLight(0x2a4858, 0.4)
     scene.add(ambientLight)
 
-    const pointLight = new THREE.PointLight(0xffffff, 1, 50)
-    pointLight.position.set(0, 5, 10)
-    scene.add(pointLight)
+    // Key light (cyan-blue)
+    const keyLight = new THREE.DirectionalLight(0x00d9ff, 1.2)
+    keyLight.position.set(5, 8, 10)
+    keyLight.castShadow = true
+    scene.add(keyLight)
+
+    // Fill light (purple-pink)
+    const fillLight = new THREE.PointLight(0xff00aa, 0.6, 30)
+    fillLight.position.set(-5, 3, 5)
+    scene.add(fillLight)
+
+    // Rim light (white-cyan)
+    const rimLight = new THREE.PointLight(0x88ddff, 0.8, 25)
+    rimLight.position.set(0, -5, -8)
+    scene.add(rimLight)
+
+    // Back accent light
+    const accentLight = new THREE.PointLight(0x4488ff, 0.5, 20)
+    accentLight.position.set(0, 8, -5)
+    scene.add(accentLight)
 
     const mainGroup = new THREE.Group()
     illustrationGroupRef.current = mainGroup
     scene.add(mainGroup)
 
-    // Create DNA helix - OPTIMIZED
-    const helixHeight = 8
-    const helixRadius = 1.5
-    const turns = 2.5
-    const pointsPerTurn = 30
+    // Create DNA helix with more detail - SIZED to fit in view
+    const helixHeight = 14
+    const helixRadius = 3.2
+    const turns = 4
+    const pointsPerTurn = 40
     const totalPoints = turns * pointsPerTurn
 
     const strand1Points = []
     const strand2Points = []
     const basePairs = []
 
-    // Create two strands of the helix
+    // Create two strands of the helix with higher detail
     for (let i = 0; i < totalPoints; i++) {
       const t = i / totalPoints
       const angle = t * Math.PI * 2 * turns
@@ -125,124 +152,168 @@ const About = () => {
       const z2 = Math.sin(angle + Math.PI) * helixRadius
       strand2Points.push(new THREE.Vector3(x2, y, z2))
 
-      // Create base pairs (connecting lines) every few points - REDUCED
-      if (i % 6 === 0) {
-        const sphereGeometry = new THREE.SphereGeometry(0.08, 6, 6)
-        const sphereMaterial = new THREE.MeshPhongMaterial({
-          color: 0xffffff,
+      // Create base pairs with more detail
+      if (i % 4 === 0) {
+        // Create more realistic nucleotide bases - LARGER
+        const baseGeometry = new THREE.SphereGeometry(0.20, 12, 12)
+        
+        // Alternate colors for base pairs (A-T and G-C)
+        const isAT = i % 8 === 0
+        const baseColor1 = isAT ? 0x00d9ff : 0xff00aa
+        const baseColor2 = isAT ? 0x88ddff : 0xff66cc
+        
+        const baseMaterial1 = new THREE.MeshPhongMaterial({
+          color: baseColor1,
           transparent: true,
-          opacity: 0.9,
-          emissive: 0xffffff,
-          emissiveIntensity: 0.3
+          opacity: 0.95,
+          shininess: 100,
+          specular: 0xffffff
         })
         
-        const sphere1 = new THREE.Mesh(sphereGeometry, sphereMaterial)
-        sphere1.position.copy(strand1Points[i])
-        mainGroup.add(sphere1)
-
-        const sphere2 = new THREE.Mesh(sphereGeometry, sphereMaterial.clone())
-        sphere2.position.copy(strand2Points[i])
-        mainGroup.add(sphere2)
-
-        // Connection line between base pairs
-        const lineGeometry = new THREE.BufferGeometry().setFromPoints([
-          strand1Points[i],
-          strand2Points[i]
-        ])
-        const lineMaterial = new THREE.LineBasicMaterial({
-          color: 0xffffff,
+        const baseMaterial2 = new THREE.MeshPhongMaterial({
+          color: baseColor2,
           transparent: true,
-          opacity: 0.4
+          opacity: 0.95,
+          shininess: 100,
+          specular: 0xffffff
+        })
+        
+        const base1 = new THREE.Mesh(baseGeometry, baseMaterial1)
+        base1.position.copy(strand1Points[i])
+        base1.castShadow = true
+        mainGroup.add(base1)
+
+        const base2 = new THREE.Mesh(baseGeometry, baseMaterial2)
+        base2.position.copy(strand2Points[i])
+        base2.castShadow = true
+        mainGroup.add(base2)
+
+        // Connection line between base pairs with gradient
+        const linePoints = []
+        const segments = 8
+        for (let j = 0; j <= segments; j++) {
+          const t = j / segments
+          const point = new THREE.Vector3().lerpVectors(strand1Points[i], strand2Points[i], t)
+          linePoints.push(point)
+        }
+        
+        const lineGeometry = new THREE.BufferGeometry().setFromPoints(linePoints)
+        const lineMaterial = new THREE.LineBasicMaterial({
+          color: 0x88ccff,
+          transparent: true,
+          opacity: 0.5,
+          linewidth: 2
         })
         const line = new THREE.Line(lineGeometry, lineMaterial)
         mainGroup.add(line)
 
-        basePairs.push({ sphere1, sphere2, line })
+        basePairs.push({ base1, base2, line })
       }
     }
 
-    // Create the helix strands as tubes
+    // Create the helix strands as tubes with realistic materials
     const strand1Curve = new THREE.CatmullRomCurve3(strand1Points)
     const strand2Curve = new THREE.CatmullRomCurve3(strand2Points)
 
-    const tubeGeometry1 = new THREE.TubeGeometry(strand1Curve, Math.floor(totalPoints * 0.8), 0.05, 6, false)
-    const tubeGeometry2 = new THREE.TubeGeometry(strand2Curve, Math.floor(totalPoints * 0.8), 0.05, 6, false)
+    const tubeGeometry1 = new THREE.TubeGeometry(strand1Curve, Math.floor(totalPoints * 1.2), 0.15, 12, false)
+    const tubeGeometry2 = new THREE.TubeGeometry(strand2Curve, Math.floor(totalPoints * 1.2), 0.15, 12, false)
 
-    const tubeMaterial = new THREE.MeshPhongMaterial({
-      color: 0xffffff,
+    const tubeMaterial1 = new THREE.MeshPhongMaterial({
+      color: 0x00bbff,
       transparent: true,
-      opacity: 0.8,
-      shininess: 100,
-      emissive: 0xffffff,
-      emissiveIntensity: 0.2
+      opacity: 0.9,
+      shininess: 120,
+      specular: 0xffffff
     })
 
-    const strand1Mesh = new THREE.Mesh(tubeGeometry1, tubeMaterial)
-    const strand2Mesh = new THREE.Mesh(tubeGeometry2, tubeMaterial.clone())
+    const tubeMaterial2 = new THREE.MeshPhongMaterial({
+      color: 0xff0099,
+      transparent: true,
+      opacity: 0.9,
+      shininess: 120,
+      specular: 0xffffff
+    })
+
+    const strand1Mesh = new THREE.Mesh(tubeGeometry1, tubeMaterial1)
+    const strand2Mesh = new THREE.Mesh(tubeGeometry2, tubeMaterial2)
+    
+    strand1Mesh.castShadow = true
+    strand2Mesh.castShadow = true
 
     mainGroup.add(strand1Mesh)
     mainGroup.add(strand2Mesh)
 
-    // Create floating data particles around DNA - REDUCED from 60 to 30
+    // Create floating data particles with more variety - LARGER
     const particles = []
-    for (let i = 0; i < 30; i++) {
-      const particleGeometry = new THREE.SphereGeometry(0.04, 6, 6)
+    const particleTypes = [
+      { size: 0.10, color: 0x00ffff, emissive: 0.8 },
+      { size: 0.08, color: 0xff00ff, emissive: 0.7 },
+      { size: 0.07, color: 0xffffff, emissive: 0.6 },
+      { size: 0.12, color: 0x00ff88, emissive: 0.9 }
+    ]
+
+    for (let i = 0; i < 50; i++) {
+      const type = particleTypes[Math.floor(Math.random() * particleTypes.length)]
+      
+      const particleGeometry = new THREE.SphereGeometry(type.size, 8, 8)
       const particleMaterial = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
+        color: type.color,
         transparent: true,
-        opacity: 0.6 + Math.random() * 0.4
+        opacity: 0.7 + Math.random() * 0.3
       })
       
       const particle = new THREE.Mesh(particleGeometry, particleMaterial)
       
-      const radius = 2.5 + Math.random() * 1.5
+      const radius = 4.5 + Math.random() * 2.5
       const angle = Math.random() * Math.PI * 2
-      const height = (Math.random() - 0.5) * helixHeight
+      const height = (Math.random() - 0.5) * helixHeight * 1.2
       
       particle.position.x = Math.cos(angle) * radius
       particle.position.y = height
       particle.position.z = Math.sin(angle) * radius
       
-      particle.userData.orbitSpeed = 0.001 + Math.random() * 0.002
+      particle.userData.orbitSpeed = 0.0008 + Math.random() * 0.0015
       particle.userData.angle = angle
       particle.userData.radius = radius
-      particle.userData.verticalSpeed = (Math.random() - 0.5) * 0.01
+      particle.userData.verticalSpeed = (Math.random() - 0.5) * 0.008
+      particle.userData.pulseSpeed = 0.5 + Math.random() * 1
+      particle.userData.pulseOffset = Math.random() * Math.PI * 2
       
       particles.push(particle)
       mainGroup.add(particle)
     }
 
-    // Create outer rings for matrix effect - REDUCED from 4 to 2
+    // Create outer rings for matrix effect with depth - sized to fit
     const rings = []
-    for (let i = 0; i < 2; i++) {
-      const ringGeometry = new THREE.TorusGeometry(2.5 + i * 0.8, 0.01, 8, 32)
+    for (let i = 0; i < 3; i++) {
+      const ringGeometry = new THREE.TorusGeometry(4.5 + i * 1.2, 0.03, 12, 48)
       const ringMaterial = new THREE.MeshBasicMaterial({
-        color: 0xffffff,
+        color: i === 0 ? 0x00ffff : i === 1 ? 0xff00ff : 0xffffff,
         transparent: true,
-        opacity: 0.1 - i * 0.03,
-        blending: THREE.AdditiveBlending
+        opacity: 0.15 - i * 0.04
       })
       const ring = new THREE.Mesh(ringGeometry, ringMaterial)
-      ring.rotation.x = Math.PI / 2
-      ring.position.y = (i - 1) * 2
-      ring.userData.speed = 0.001 + i * 0.0002
+      ring.rotation.x = Math.PI / 2 + (Math.random() - 0.5) * 0.2
+      ring.position.y = (i - 1) * 3.5
+      ring.userData.speed = 0.0008 + i * 0.0003
+      ring.userData.axis = Math.random() < 0.5 ? 'x' : 'z'
       rings.push(ring)
       mainGroup.add(ring)
     }
 
-    // Create digital grid lines
+    // Create digital grid lines with depth - sized to fit
     const gridLines = []
-    for (let i = 0; i < 8; i++) {
-      const angle = (i / 8) * Math.PI * 2
+    for (let i = 0; i < 12; i++) {
+      const angle = (i / 12) * Math.PI * 2
       const points = [
-        new THREE.Vector3(Math.cos(angle) * 4, -4, Math.sin(angle) * 4),
-        new THREE.Vector3(Math.cos(angle) * 4, 4, Math.sin(angle) * 4)
+        new THREE.Vector3(Math.cos(angle) * 7, -7, Math.sin(angle) * 7),
+        new THREE.Vector3(Math.cos(angle) * 7, 7, Math.sin(angle) * 7)
       ]
       const lineGeometry = new THREE.BufferGeometry().setFromPoints(points)
       const lineMaterial = new THREE.LineBasicMaterial({
-        color: 0xffffff,
+        color: i % 3 === 0 ? 0x00ffff : i % 3 === 1 ? 0xff00ff : 0xffffff,
         transparent: true,
-        opacity: 0.1
+        opacity: 0.08
       })
       const line = new THREE.Line(lineGeometry, lineMaterial)
       gridLines.push(line)
@@ -251,8 +322,11 @@ const About = () => {
 
     const handleIllustrationResize = () => {
       if (!illustrationCanvasRef.current || !illustrationCameraRef.current || !illustrationRendererRef.current) return
-      const size = illustrationCanvasRef.current.clientWidth
-      illustrationRendererRef.current.setSize(size, size)
+      const canvasWidth = Math.max(illustrationCanvasRef.current.clientWidth, 400)
+      const canvasHeight = Math.max(illustrationCanvasRef.current.clientHeight, 500)
+      illustrationCameraRef.current.aspect = canvasWidth / canvasHeight
+      illustrationCameraRef.current.updateProjectionMatrix()
+      illustrationRendererRef.current.setSize(canvasWidth, canvasHeight)
     }
 
     let time = 0
@@ -260,35 +334,47 @@ const About = () => {
       illustrationAnimationRef.current = requestAnimationFrame(animate)
       time += 0.01
 
-      // Rotate the DNA helix - slower rotation
-      mainGroup.rotation.y += 0.003
+      // Rotate the DNA helix smoothly
+      mainGroup.rotation.y += 0.002
+      mainGroup.rotation.x = Math.sin(time * 0.1) * 0.05
 
-      // Pulse base pairs - only pulse every other frame for performance
-      if (Math.floor(time * 60) % 2 === 0) {
-        basePairs.forEach((pair, index) => {
-          const scale = 1 + Math.sin(time * 2 + index * 0.3) * 0.2
-          pair.sphere1.scale.set(scale, scale, scale)
-          pair.sphere2.scale.set(scale, scale, scale)
-        })
-      }
+      // Pulse base pairs with realistic breathing effect
+      basePairs.forEach((pair, index) => {
+        const scale = 1 + Math.sin(time * 2 + index * 0.2) * 0.15
+        pair.base1.scale.set(scale, scale, scale)
+        pair.base2.scale.set(scale, scale, scale)
+      })
 
-      // Animate particles orbiting the DNA
+      // Animate particles with complex motion
       particles.forEach(particle => {
         particle.userData.angle += particle.userData.orbitSpeed
         particle.position.x = Math.cos(particle.userData.angle) * particle.userData.radius
         particle.position.z = Math.sin(particle.userData.angle) * particle.userData.radius
         
-        // Vertical movement
+        // Vertical movement with sine wave
         particle.position.y += particle.userData.verticalSpeed
-        if (Math.abs(particle.position.y) > helixHeight / 2) {
+        if (Math.abs(particle.position.y) > helixHeight / 2 + 1) {
           particle.userData.verticalSpeed *= -1
+        }
+        
+        // Pulse particle opacity
+        const pulseOpacity = 0.5 + Math.sin(time * particle.userData.pulseSpeed + particle.userData.pulseOffset) * 0.4
+        particle.material.opacity = pulseOpacity
+      })
+
+      // Rotate rings with variation
+      rings.forEach(ring => {
+        if (ring.userData.axis === 'z') {
+          ring.rotation.z += ring.userData.speed
+        } else {
+          ring.rotation.x += ring.userData.speed * 0.5
         }
       })
 
-      // Rotate rings
-      rings.forEach(ring => {
-        ring.rotation.z += ring.userData.speed
-      })
+      // Camera subtle movement for depth - reduced since camera is closer
+      camera.position.x = Math.sin(time * 0.3) * 0.5
+      camera.position.y = Math.cos(time * 0.2) * 0.3
+      camera.lookAt(0, 0, 0)
 
       if (illustrationRendererRef.current && illustrationSceneRef.current && illustrationCameraRef.current) {
         illustrationRendererRef.current.render(illustrationSceneRef.current, illustrationCameraRef.current)
@@ -326,76 +412,75 @@ const About = () => {
         </div>
       </div>
 
-      {/* Vision & Mission - Simplified Layout with DNA Illustration */}
+      {/* Vision & Mission - New Layout with Center Illustration */}
       <div className="relative container mx-auto px-6 py-20">
         <div className="max-w-7xl mx-auto">
           
-          <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Grid Layout: Vision Left (Row 1), Illustration Center (Rows 1-2), Mission Right (Row 2) */}
+          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-start">
             
-            {/* Left Side - 3D DNA Illustration */}
-            <div className="order-2 lg:order-1">
+            {/* Vision Card - Left Side, First Row */}
+            <div className="lg:col-span-4 lg:col-start-1 lg:row-start-1 relative z-10">
               <div className="relative">
-                {/* Glow background */}
-                <div className="absolute inset-0 bg-white/5 rounded-full blur-3xl"></div>
+                {/* Gradient border effect */}
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-white/40 to-white/20 rounded-2xl opacity-75 blur-sm"></div>
                 
-                {/* Canvas container */}
-                <div className="relative w-full aspect-square max-w-[500px] mx-auto">
+                <div className="relative bg-black/90 backdrop-blur-md rounded-2xl p-4 md:p-5 border border-white/20">
+                  {/* Small tag */}
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/30 mb-2">
+                    <div className="w-2 h-2 rounded-full bg-white shadow-lg shadow-white/50"></div>
+                    <span className="text-xs font-medium text-white uppercase tracking-wider">Vision</span>
+                  </div>
+                  
+                  <h3 className="text-lg md:text-xl font-bold text-white mb-2">
+                    {visionContent.title}
+                  </h3>
+                  
+                  <p className="text-gray-400 leading-relaxed text-xs md:text-sm">
+                    {visionContent.description}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {/* 3D DNA Illustration - Center, Spanning 2 Rows, WIDER */}
+            <div className="lg:col-span-4 lg:col-start-5 lg:row-span-2 lg:row-start-1 order-first lg:order-none flex items-center justify-center">
+              <div className="relative w-full">
+                {/* Canvas container - Centered and sized appropriately */}
+                <div className="relative w-full max-w-[600px] mx-auto" style={{ height: '700px' }}>
                   <canvas
                     ref={illustrationCanvasRef}
                     className="w-full h-full"
+                    style={{ display: 'block' }}
                   />
                 </div>
               </div>
             </div>
 
-            {/* Right Side - Vision & Mission Cards Stacked */}
-            <div className="order-1 lg:order-2 space-y-8">
-              
-              {/* Vision Card */}
+            {/* Mission Card - Right Side, Second Row */}
+            <div className="lg:col-span-4 lg:col-start-9 lg:row-start-2 relative z-10">
               <div className="relative">
                 {/* Gradient border effect */}
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-white/40 to-white/20 rounded-2xl opacity-75"></div>
+                <div className="absolute -inset-0.5 bg-gradient-to-r from-white/40 to-white/20 rounded-2xl opacity-75 blur-sm"></div>
                 
-                <div className="relative bg-black/90 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/10">
+                <div className="relative bg-black/90 backdrop-blur-md rounded-2xl p-4 md:p-5 border border-white/20">
                   {/* Small tag */}
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 mb-3">
-                    <div className="w-2 h-2 rounded-full bg-white"></div>
-                    <span className="text-xs font-medium text-white uppercase tracking-wider">Vision</span>
-                  </div>
-                  
-                  <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
-                    {visionContent.title}
-                  </h3>
-                  
-                  <p className="text-gray-400 leading-relaxed text-sm md:text-base">
-                    {visionContent.description}
-                  </p>
-                </div>
-              </div>
-
-              {/* Mission Card */}
-              <div className="relative">
-                {/* Gradient border effect */}
-                <div className="absolute -inset-0.5 bg-gradient-to-r from-white/20 to-white/40 rounded-2xl opacity-75"></div>
-                
-                <div className="relative bg-black/90 backdrop-blur-md rounded-2xl p-6 md:p-8 border border-white/10">
-                  {/* Small tag */}
-                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/20 mb-3">
-                    <div className="w-2 h-2 rounded-full bg-white"></div>
+                  <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/10 border border-white/30 mb-2">
+                    <div className="w-2 h-2 rounded-full bg-white shadow-lg shadow-white/50"></div>
                     <span className="text-xs font-medium text-white uppercase tracking-wider">Mission</span>
                   </div>
                   
-                  <h3 className="text-xl md:text-2xl font-bold text-white mb-3">
+                  <h3 className="text-lg md:text-xl font-bold text-white mb-2">
                     {missionContent.title}
                   </h3>
                   
-                  <p className="text-gray-400 leading-relaxed text-sm md:text-base">
+                  <p className="text-gray-400 leading-relaxed text-xs md:text-sm">
                     {missionContent.description}
                   </p>
                 </div>
               </div>
-
             </div>
+
           </div>
 
         </div>
